@@ -59,6 +59,54 @@ def razd(massWithoutSort):
 	
 	return(massC)
 
+def raszacirc(massWithoutSort):
+
+	n = 0
+	for item in massWithoutSort:
+		if item:
+			n+=1
+
+	massA = [[] * 2] * n
+	
+	i = 0
+	for item in massWithoutSort:
+		massA[i] = item.split(",",1)
+		if massA[i][0] == "3" or massA[i][0] == "100" or massA[i][0] == "140" or massA[i][0] == "1003":
+			i+=1
+
+	n = 0
+	for item in massA:
+		if item:
+			n+=1
+
+	
+	massB = [[] * 2] * n
+
+	i = 0
+	for item in massA:
+		if massA[i] and (massA[i][0] == "3" or massA[i][0] == "100" or massA[i][0] == "140" or massA[i][0] == "1003") :
+			massB[i] = massA[i][1].split("=",1)
+			massB[i][1] = re.sub("[^0-9]","",massB[i][1])
+			i+=1
+
+	n = int(n / 4)
+	massC = [[] * 4] * n
+
+	j = 0
+	i = 0
+	for item in massB:
+		if item:	
+			if j % 4 == 0:
+				massC[i] = ["","","",""]
+				massC[i][0] = massB[j][1][0]+massB[j][1][1]+massB[j][1][2]+massB[j][1][3]+"-"+massB[j][1][4]+massB[j][1][5]+"-"+massB[j][1][6]+massB[j][1][7]+" "+massB[j][1][8]+massB[j][1][9]+":"+massB[j][1][10]+massB[j][1][11]+":"+massB[j][1][12]+massB[j][1][13]
+				massC[i][1] = massB[j+1][1]
+				massC[i][2] = massB[j+2][1]
+				massC[i][3] = massB[j+3][1][0]+massB[j+3][1][1]+massB[j+3][1][2]+massB[j+3][1][3]+"-"+massB[j+3][1][4]+massB[j+3][1][5]+"-"+massB[j+3][1][6]+massB[j+3][1][7]+" "+massB[j+3][1][8]+massB[j+3][1][9]+":"+massB[j+3][1][10]+massB[j+3][1][11]+":"+massB[j+3][1][12]+massB[j+3][1][13]
+				i+=1
+			j+=1	
+	
+	return(massC)
+
 def issue_csv(massC):
 
 	with open('issue.csv', "w") as csvfile:
@@ -91,7 +139,9 @@ def return_csv(massC):
 		i = 0
 		for item in massC:
 			if massC:
-				rowC = [massC[i][0],"return",massC[i][2]]
+				rowA = [massC[i][3], "issue", massC[i][1], massC[i][2]]
+				writer.writerow(rowA)
+				rowC = [massC[i][0], "return", massC[i][2]]
 				writer.writerow(rowC)
 			i+=1
 
@@ -100,9 +150,6 @@ def return_csv(massC):
 
 	massC.clear()
 
-
-# return_csv(razd(reader('acirc.dat')))
-# issue_csv(razd(reader('circ.dat')))
 
 dirname = './'
 files = os.listdir(dirname)
@@ -113,10 +160,10 @@ for item in files:
 		if base[0][0] == "a":
 			if len(base[0]) != 5:
 				indexFile = base[0].replace("acirc",'')
-				return_csv(razd(reader(item)))
+				return_csv(raszacirc(reader(item)))
 			if len(base[0])	== 5:
 				indexFile = ""
-				return_csv(razd(reader(item)))
+				return_csv(raszacirc(reader(item)))
 		if base[0][0] == "c":
 			indexFile = ""
 			issue_csv(razd(reader(item)))
