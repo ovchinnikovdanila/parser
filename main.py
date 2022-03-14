@@ -2,154 +2,79 @@ import re
 import csv
 import os
 
-def reader(filename):
-
-	with open(filename, encoding="utf-8") as f:
-
-		inData = f.read()
-
-		massWithoutSort = inData.split("@")
-
-	return massWithoutSort
-
-def razd(massWithoutSort):
-
-	n = 0
-	for item in massWithoutSort:
-		if item:
-			n+=1
-
-	massA = [[] * 2] * n
-	
-	i = 0
-	for item in massWithoutSort:
-		massA[i] = item.split(",",1)
-		if massA[i][0] == "3" or massA[i][0] == "100" or massA[i][0] == "140"	:
-			i+=1
-
-	n = 0
-	for item in massA:
-		if item:
-			n+=1
-
-	
-	massB = [[] * 2] * n
-
-	i = 0
-	for item in massA:
-		if massA[i] and (massA[i][0] == "3" or massA[i][0] == "100" or massA[i][0] == "140") :
-			massB[i] = massA[i][1].split("=",1)
-			massB[i][1] = re.sub("[^0-9]","",massB[i][1])
-			i+=1
-
-	n = int(n / 3)
-	massC = [[] * 3] * n
-
-	j = 0
-	i = 0
-	for item in massB:
-		if item:	
-			if j % 3 == 0:
-				massC[i] = ["","",""]
-				massC[i][0] = massB[j][1][0]+massB[j][1][1]+massB[j][1][2]+massB[j][1][3]+"-"+massB[j][1][4]+massB[j][1][5]+"-"+massB[j][1][6]+massB[j][1][7]+" "+massB[j][1][8]+massB[j][1][9]+":"+massB[j][1][10]+massB[j][1][11]+":"+massB[j][1][12]+massB[j][1][13]
-				massC[i][1] = massB[j+1][1]
-				massC[i][2] = massB[j+2][1]
-				i+=1
-			j+=1	
-	
-	return(massC)
-
-def raszacirc(massWithoutSort):
-
-	n = 0
-	for item in massWithoutSort:
-		if item:
-			n+=1
-
-	massA = [[] * 2] * n
-	
-	i = 0
-	for item in massWithoutSort:
-		massA[i] = item.split(",",1)
-		if massA[i][0] == "3" or massA[i][0] == "100" or massA[i][0] == "140" or massA[i][0] == "1003":
-			i+=1
-
-	n = 0
-	for item in massA:
-		if item:
-			n+=1
-
-	
-	massB = [[] * 2] * n
-
-	i = 0
-	for item in massA:
-		if massA[i] and (massA[i][0] == "3" or massA[i][0] == "100" or massA[i][0] == "140" or massA[i][0] == "1003") :
-			massB[i] = massA[i][1].split("=",1)
-			massB[i][1] = re.sub("[^0-9]","",massB[i][1])
-			i+=1
-
-	n = int(n / 4)
-	massC = [[] * 4] * n
-
-	j = 0
-	i = 0
-	for item in massB:
-		if item:	
-			if j % 4 == 0:
-				massC[i] = ["","","",""]
-				massC[i][0] = massB[j][1][0]+massB[j][1][1]+massB[j][1][2]+massB[j][1][3]+"-"+massB[j][1][4]+massB[j][1][5]+"-"+massB[j][1][6]+massB[j][1][7]+" "+massB[j][1][8]+massB[j][1][9]+":"+massB[j][1][10]+massB[j][1][11]+":"+massB[j][1][12]+massB[j][1][13]
-				massC[i][1] = massB[j+1][1]
-				massC[i][2] = massB[j+2][1]
-				massC[i][3] = massB[j+3][1][0]+massB[j+3][1][1]+massB[j+3][1][2]+massB[j+3][1][3]+"-"+massB[j+3][1][4]+massB[j+3][1][5]+"-"+massB[j+3][1][6]+massB[j+3][1][7]+" "+massB[j+3][1][8]+massB[j+3][1][9]+":"+massB[j+3][1][10]+massB[j+3][1][11]+":"+massB[j+3][1][12]+massB[j+3][1][13]
-				i+=1
-			j+=1	
-	
-	return(massC)
-
-def issue_csv(massC):
-
-	with open('issue.csv', "w") as csvfile:
-		writer = csv.writer(csvfile, delimiter='\t')
-		header = ["Version=1.0","Generator=RuslanDat2koc","GeneratorVersion=0.1"]
-		writer.writerow(header)
-
-		i = 0
-		for item in massC:
-			if massC:
-				rowC = [massC[i][0],"issue",massC[i][1],massC[i][2]]
-				writer.writerow(rowC)
-			i+=1
-
-	thisFile = "issue.csv"
+def reader(filename, thisFile, operation_type):
+	with open(filename, "r", encoding="utf-8") as f:
+		for row in csv.reader(f):
+			if any(field.strip() for field in row):
+				text = ""
+				for item in row:
+					text += "," + item
+				global a 
+				a = pars_object(text)
+				if operation_type == 0:
+					add_row_circ(thisFile)
+				if operation_type == 1:
+					add_row_acirc(thisFile)
 	base = os.path.splitext(thisFile)[0]
 	os.rename(thisFile, base + ".koc")
 
-	massC.clear()
+def add_row_circ(thisFile):
+	if not os.path.exists(thisFile):
+		with open(thisFile, "w", newline = "", encoding="utf-8") as csvfile:
+			writer = csv.writer(csvfile, delimiter='\t')
+			header = ["Version=1.0","Generator=RuslanDat2koc","GeneratorVersion=0.1"]
+			writer.writerow(header)
+			row = [a.date3,"issue",a.holdingname,a.bookname]
+			writer.writerow(row)
+	
+	else:
+		with open(thisFile, "a", newline = "", encoding="utf-8") as csvfile:
+			writer = csv.writer(csvfile, delimiter='\t')
+			row = [a.date3,"issue",a.holdingname,a.bookname]
+			writer.writerow(row)
 
-def return_csv(massC):
+def add_row_acirc(thisFile):
+	if not os.path.exists(thisFile):
+		with open(thisFile, "w", newline = "", encoding="utf-8") as csvfile:
+			writer = csv.writer(csvfile, delimiter='\t')
+			header = ["Version=1.0","Generator=RuslanDat2koc","GeneratorVersion=0.1"]
+			writer.writerow(header)
+			row = [a.date1003,"issue",a.holdingname,a.bookname]
+			writer.writerow(row)
+			row = [a.date3,"return",a.bookname]
+			writer.writerow(row)
+	
+	else:
+		with open(thisFile, "a", newline = "", encoding="utf-8") as csvfile:
+			writer = csv.writer(csvfile, delimiter='\t')
+			row = [a.date1003,"issue",a.holdingname,a.bookname]
+			writer.writerow(row)
+			row = [a.date3,"return",a.bookname]
+			writer.writerow(row)
 
-
-	thisFile = "return" + indexFile + ".csv"
-	with open(thisFile, "w") as csvfile:
-		writer = csv.writer(csvfile, delimiter='\t')
-		header = ["Version=1.0","Generator=RuslanDat2koc","GeneratorVersion=0.1"]
-		writer.writerow(header)
-
-		i = 0
-		for item in massC:
-			if massC:
-				rowA = [massC[i][3], "issue", massC[i][1], massC[i][2]]
-				writer.writerow(rowA)
-				rowC = [massC[i][0], "return", massC[i][2]]
-				writer.writerow(rowC)
-			i+=1
-
-	base = os.path.splitext(thisFile)[0]
-	os.rename(thisFile, base + ".koc")
-
-	massC.clear()
-
+class pars_object:
+	def __init__(self, text):
+		self.text = text
+		self.holdingname = " "
+		self.bookname = " "
+		self.date3 = " "
+		self.date1003 = " "
+		self.objects_fields()
+	
+	def objects_fields(self):
+		m = self.text.split("@")
+		for item in m:
+			a = item.split(",",1)
+			if a[0] == "100":
+				self.holdingname = item.split("=")[1].split(",",1)[0]
+			if a[0] == "140":
+				self.bookname = item.split("=")[1].split(",",1)[0]
+			if a[0] == "3":
+				b = item.split("=")[1]
+				self.date3 = b[0] + b[1] + b[2] + b[3] + "-" + b[4] + b[5] + "-" + b[6] + b[7] + " " + b[8] + b[9] + ":" + b[10] + b[11] + ":" + b[12] + b[13]
+			if a[0] == "1003":
+				b = item.split("=")[1]
+				self.date1003 = b[0] + b[1] + b[2] + b[3] + "-" + b[4] + b[5] + "-" + b[6] + b[7] + " " + b[8] + b[9] + ":" + b[10] + b[11] + ":" + b[12] + b[13]
 
 dirname = './'
 files = os.listdir(dirname)
@@ -158,15 +83,16 @@ for item in files:
 	base = item.split(".",1)
 	if base[1] == "dat":
 		if base[0][0] == "a":
-			if len(base[0]) != 5:
-				indexFile = base[0].replace("acirc",'')
-				return_csv(raszacirc(reader(item)))
-			if len(base[0])	== 5:
-				indexFile = ""
-				return_csv(raszacirc(reader(item)))
+			if os.path.exists(base[0] + ".koc"):
+				os.remove(base[0] + ".koc")
+			if os.path.exists(base[0] + ".csv"):
+				os.remove(base[0] + ".csv")	
+			reader(item, base[0] + ".csv", 1)
 		if base[0][0] == "c":
-			indexFile = ""
-			issue_csv(razd(reader(item)))
-			print("issue " + item)
+			if os.path.exists(base[0] + ".koc"):
+				os.remove(base[0] + ".koc")
+			if os.path.exists(base[0] + ".csv"):
+				os.remove(base[0] + ".csv")
+			reader(item, base[0] + ".csv", 0)
 
 
